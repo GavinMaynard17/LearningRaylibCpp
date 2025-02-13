@@ -8,7 +8,7 @@ int main(void)
     {
         BeginDrawing();
             ClearBackground(BLACK);
-            DrawText("First Commit! yur", 300, 200, 20, WHITE);
+            DrawText("First Commit!", 300, 200, 20, WHITE);
         EndDrawing();
     }
 
