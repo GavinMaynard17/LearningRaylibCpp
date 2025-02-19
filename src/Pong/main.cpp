@@ -1,11 +1,16 @@
 #include <iostream>
 #include <raylib.h>  
 
+const int HEADING_FONT_SIZE = 80;
+const int SUBHEADING_FONT_SIZE = 30;
+const Color PRIMARY_COLOR = BLACK;
+
 int playerScore = 0;
 int oppScore = 0;
 int direction_choices[2] = {-1,1};
 int framesCounter = 0;
 int TARGET_FPS = 60;
+int win_score = 5;
 
 typedef enum GameScreen { LOGO = 0, TITLE, GAMEPLAY, PAUSED, ENDING } GameScreen;
 
@@ -147,7 +152,8 @@ public:
 Ball ball;
 Paddle player;
 Opponent opp;
-int main(){
+int main()
+{
     int screen_width = 1280;
     int screen_height = 800;
     SetTargetFPS(TARGET_FPS);
@@ -174,9 +180,6 @@ int main(){
     opp.width = 20;
     opp.height = 100;
     opp.speed = 6;
-
-    
-    
 
     while (!WindowShouldClose()){
         
@@ -205,16 +208,28 @@ int main(){
                 //Check collisions
                 ball.CheckPaddleCollision(player, opp);
                 if(IsKeyPressed(KEY_ESCAPE)) currentScreen = PAUSED;
+                if (oppScore == win_score || playerScore == win_score)
+                    currentScreen = ENDING;
             } break;
             case PAUSED:
             {
                 if(IsKeyPressed(KEY_ESCAPE)) 
                 {
                     currentScreen = GAMEPLAY;
+                }
             } break;
             case ENDING:
             {
-
+                if(IsKeyPressed(KEY_ENTER))
+                {
+                    oppScore = 0;
+                    playerScore = 0;
+                    framesCounter = 0;
+                    player.y = screen_height/2-50;
+                    opp.y = screen_height/2-50;
+                    ball.round_starting = true;
+                    currentScreen = GAMEPLAY;
+                }
             } break;
             default: break;
         }
@@ -227,20 +242,27 @@ int main(){
         {
             case LOGO:
             {
-                // TODO: Draw LOGO screen here!
-                DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
+                const char *logo_abv = "G.G.G.";
+                int logo_width = MeasureText(logo_abv, HEADING_FONT_SIZE); 
+
+                const char *logo_text = "GMay GOAT Games";
+                int logo_text_width = MeasureText(logo_text, SUBHEADING_FONT_SIZE);
+
+                DrawText(logo_abv, screen_width/2-(logo_width/2), screen_height/2-HEADING_FONT_SIZE, HEADING_FONT_SIZE, LIGHTGRAY);
+                DrawText(logo_text, screen_width/2-(logo_text_width/2), screen_height/2+SUBHEADING_FONT_SIZE, SUBHEADING_FONT_SIZE, GRAY);
             } break;
             case TITLE:
             {
-                // TODO: Draw TITLE screen here!
-                DrawRectangle(0, 0, screen_width, screen_height, GREEN);
-                DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
-                DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
+                const char *game_title = "GMay Pong";
+                const int title_width = MeasureText(game_title, HEADING_FONT_SIZE);
+
+                DrawRectangle(0, 0, screen_width, screen_height, PRIMARY_COLOR);
+                DrawText("GMAY PONG", 40, 40, HEADING_FONT_SIZE, WHITE);
+                DrawText("PRESS ENTER OR DOUBLE CLICK TO START PLAYING", 40, 220, SUBHEADING_FONT_SIZE, LIGHTGRAY);
             } break;
             case GAMEPLAY:
             {
-                ClearBackground(BLACK);
+                ClearBackground(PRIMARY_COLOR);
                 DrawLine(screen_width/2, 0, screen_width/2, screen_height, WHITE);
                 ball.Draw();
                 opp.Draw();
@@ -251,10 +273,18 @@ int main(){
                 {
                     if (framesCounter < 180)
                     {
-                        DrawText(TextFormat("%i", 3-framesCounter/60), screen_width/2, 50, 50, LIGHTGRAY);
+                        const char *sec_remaining = TextFormat("%i", 3-framesCounter/60);
+                        const int sec_remaining_width = MeasureText(sec_remaining, SUBHEADING_FONT_SIZE);
+
+                        DrawRectangle(screen_width/2-3, 48, 6, SUBHEADING_FONT_SIZE+4, PRIMARY_COLOR);
+                        DrawText(sec_remaining, screen_width/2-sec_remaining_width/2, 50, SUBHEADING_FONT_SIZE, LIGHTGRAY);
                     } else if (framesCounter<300)
                     {
-                        DrawText("START!", screen_width/2-25, 50, 50, LIGHTGRAY);
+                        const char *start_text = "START!";
+                        const int start_text_width = MeasureText(start_text, SUBHEADING_FONT_SIZE);
+
+                        DrawRectangle(screen_width/2-3, 48, 6, SUBHEADING_FONT_SIZE+4, PRIMARY_COLOR);
+                        DrawText(start_text, screen_width/2-start_text_width/2, 50, SUBHEADING_FONT_SIZE, LIGHTGRAY);
                     } else 
                     {
                         ball.StartRound();
@@ -263,14 +293,27 @@ int main(){
             } break;
             case PAUSED:
             {
-                // TODO: Draw TITLE screen here!
-                DrawRectangle(0, 0, screen_width, screen_height, GREEN);
-                DrawText("PAUSE SCREEN", 20, 20, 40, DARKGREEN);
-                DrawText("PRESS ESCAPE to RETURN to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
+                // TODO: Draw PAUSED screen here!
+                DrawRectangle(0, 0, screen_width, screen_height, PRIMARY_COLOR);
+                DrawText("PAUSE SCREEN", 40,40, HEADING_FONT_SIZE, WHITE);
+                DrawText("PRESS ESCAPE to RETURN to GAMEPLAY SCREEN", 40, 220, SUBHEADING_FONT_SIZE, LIGHTGRAY);
             } break;
             case ENDING:
             {
+                // TODO: Draw ENDING screen here!
+                DrawRectangle(0, 0, screen_width, screen_height, PRIMARY_COLOR);
+                const char *game_over = "Game over!";
+                const int game_over_width = MeasureText(game_over, HEADING_FONT_SIZE);
 
+                const char *final_score = TextFormat("%i - %i", oppScore, playerScore);
+                const int score_width = MeasureText(final_score, SUBHEADING_FONT_SIZE);
+
+                const char *footer_text = "PRESS ENTER TO START A NEW GAME";
+                const int footer_width = MeasureText(footer_text, SUBHEADING_FONT_SIZE);
+
+                DrawText(game_over, screen_width/2-game_over_width/2, screen_height/2-HEADING_FONT_SIZE, HEADING_FONT_SIZE, WHITE);
+                DrawText(final_score, screen_width/2-score_width/2, screen_height/2+SUBHEADING_FONT_SIZE, SUBHEADING_FONT_SIZE, WHITE);
+                DrawText(footer_text, screen_width/2-footer_width/2, screen_height/2+2*SUBHEADING_FONT_SIZE, SUBHEADING_FONT_SIZE, LIGHTGRAY);
             } break;
             default: break;
         }
